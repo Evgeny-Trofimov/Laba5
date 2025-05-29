@@ -1,1 +1,47 @@
+Visitor = Struct.new(:ticket, :duration)
 
+def gen_ticket
+  "T" + 3.times.map { "0123456789ABCDEF".chars.sample }.join
+end
+
+def distribute(windows, visitors)
+  times = windows.map { 0 }
+  visitors.each do |v|
+    i = times.index(times.min)
+    windows[i] << v
+    times[i] += v.duration
+  end
+end
+
+def print_windows(windows)
+  windows.each_with_index do |w, i|
+    total = w.sum(&:duration)
+    puts "Окно #{i+1} (#{total} минут): #{w.map(&:ticket).join(', ')}"
+  end
+end
+
+puts ">>> Введите кол-во окон"
+print "<<< "
+windows = Array.new(gets.to_i) { [] }
+visitors = []
+
+loop do
+  print "<<< "
+  cmd = gets.chomp
+  next if cmd.empty?
+
+  case cmd
+  when "DISTRIBUTE"
+    distribute(windows, visitors)
+    print_windows(windows)
+    windows.each(&:clear)
+    visitors.clear
+    break
+  when /^ENQUEUE (\d+)/
+    ticket = gen_ticket
+    visitors << Visitor.new(ticket, $1.to_i)
+    puts ">>> #{ticket}"
+  else
+    puts "Ошибка: Неизвестная команда"
+  end
+end

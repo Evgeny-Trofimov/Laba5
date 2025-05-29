@@ -1,0 +1,77 @@
+#include <iostream>
+#include <map>
+using namespace std;
+
+map<string, string> regions; // Регион -> административный центр
+
+int main() {
+    // Примеры ввода для тестирования:
+    // 6
+    // CHANGE Москва Москва
+    // CHANGE Ленинградская_область Санкт-Петербург
+    // RENAME Ленинградская_область Санкт-Петербургская_область
+    // ABOUT Москва
+    // ABOUT Карелия
+    // ALL
+    
+    int N;
+    cout << "Введите количество запросов: ";
+    cin >> N;
+    cin.ignore(); // Очистка буфера после ввода числа
+    
+    while (N--) {
+        string cmd;
+        cout << "\nВведите команду (CHANGE/RENAME/ABOUT/ALL): ";
+        cin >> cmd;
+        
+        if (cmd == "CHANGE") {
+            string region, center;
+            cout << "Введите регион и административный центр: ";
+            cin >> region >> center;
+            
+            if (regions.count(region)) {
+                cout << "Region " << region << " has changed its administrative center from " 
+                     << regions[region] << " to " << center << endl;
+            } else {
+                cout << "New region " << region << " with administrative center " << center << endl;
+            }
+            regions[region] = center;
+        }
+        else if (cmd == "RENAME") {
+            string old_name, new_name;
+            cout << "Введите старое и новое название региона: ";
+            cin >> old_name >> new_name;
+            
+            if (!regions.count(old_name) || regions.count(new_name)) {
+                cout << "Incorrect" << endl;
+                continue;
+            }
+            
+            regions[new_name] = regions[old_name];
+            regions.erase(old_name);
+            cout << old_name << " has been renamed to " << new_name << endl;
+        }
+        else if (cmd == "ABOUT") {
+            string region;
+            cout << "Введите название региона: ";
+            cin >> region;
+            
+            if (regions.count(region)) {  // <-- Исправлено: убрана лишняя скобка
+                cout << region << " has administrative center " << regions[region] << endl;
+            } else {
+                cout << "Incorrect" << endl;
+            }
+        }
+        else if (cmd == "ALL") {
+            cout << "Список всех регионов:\n";
+            for (auto& entry : regions) {
+                cout << entry.first << " - " << entry.second << endl;
+            }
+        }
+        else {
+            cout << "Неизвестная команда!" << endl;
+        }
+    }
+    
+    return 0;
+} 

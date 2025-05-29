@@ -1,1 +1,143 @@
+# Класс для представления ячейки склада
+class Cell
+  attr_accessor :address, :goods
+  
+  def initialize(address)
+    @address = address
+    @goods = {} # товар => количество
+  end
+  
+  def total_items
+    @goods.values.sum
+  end
+  
+  def add_good(good, quantity)
+    if total_items + quantity > 10
+      puts "Ошибка: В ячейке может быть не более 10 товаров (сейчас #{total_items})"
+      return false
+    end
+    @goods[good] ||= 0
+    @goods[good] += quantity
+    true
+  end
+  
+  def remove_good(good, quantity)
+    unless @goods.key?(good)
+      puts "Ошибка: Товар '#{good}' не найден в ячейке"
+      return false
+    end
+    
+    if @goods[good] < quantity
+      puts "Ошибка: Недостаточно товара (есть #{@goods[good]}, запрошено #{quantity})"
+      return false
+    end
+    
+    @goods[good] -= quantity
+    @goods.delete(good) if @goods[good].zero?
+    true
+  end
+end
 
+# Инициализация склада
+def init_warehouse
+  cells = []
+  ('A'..'G').each do |zone|
+    1.upto(15) do |rack|
+      1.upto(11) do |section|
+        1.upto(3) do |shelf|
+          address = "#{zone}#{rack.to_s.rjust(2, '0')}#{section.to_s.rjust(2, '0')}#{shelf}"
+          cells << Cell.new(address)
+        end
+      end
+    end
+  end
+  cells
+end
+
+# Основной класс системы учета
+class WarehouseSystem
+  def initialize
+    @cells = init_warehouse
+    @total_cells = @cells.size
+  end
+  
+  def find_cell(address)
+    @cells.find { |cell| cell.address == address }
+  end
+  
+  def process_command(command)
+    case command
+    when 'INFO'
+      print_info
+    when 'EXIT'
+      exit
+    else
+      cmd, good, quantity, address = command.split
+      quantity = quantity.to_i
+      
+      cell = find_cell(address)
+      unless cell
+        puts "Ошибка: Ячейка не найдена"
+        return
+      end
+      
+      case cmd
+      when 'ADD'
+        if cell.add_good(good, quantity)
+          puts "Добавлено #{quantity} шт. товара '#{good}' в ячейку #{address}"
+        end
+      when 'REMOVE'
+        if cell.remove_good(good, quantity)
+          puts "Удалено #{quantity} шт. товара '#{good}' из ячейки #{address}"
+        end
+      else
+        puts "Неверная команда. Доступные команды: ADD, REMOVE, INFO, EXIT"
+      end
+    end
+  end
+  
+  def print_info
+    used_cells = @cells.count { |cell| !cell.goods.empty? }
+    zone_used = ('A'..'G').each_with_object({}) { |z, h| h[z] = 0 }
+    
+    @cells.each do |cell|
+      zone_used[cell.address[0]] += 1 unless cell.goods.empty?
+    end
+    
+    puts "\nОбщая загруженность склада: #{(used_cells * 100.0 / @total_cells).round(2)}% (#{used_cells}/#{@total_cells} ячеек)"
+    
+    puts "\nЗагруженность по зонам:"
+    ('A'..'G').each do |zone|
+      zone_cells = @cells.count { |cell| cell.address.start_with?(zone) }
+      puts "Зона #{zone}: #{(zone_used[zone] * 100.0 / zone_cells).round(2)}% (#{zone_used[zone]}/#{zone_cells})"
+    end
+    
+    puts "\nЗанятые ячейки:"
+    @cells.each do |cell|
+      next if cell.goods.empty?
+      goods_list = cell.goods.map { |g, q| "#{g} (#{q})" }.join(', ')
+      puts "#{cell.address}: #{goods_list}"
+    end
+    
+    empty = @cells.select { |cell| cell.goods.empty? }.map(&:address)
+    puts "\nПустые ячейки (#{empty.size}):"
+    empty.each_slice(10) { |slice| puts slice.join(', ') }
+  end
+end
+
+# Запуск системы
+system = WarehouseSystem.new
+puts "Система учета товаров на складе"
+puts "Формат команд:"
+puts "ADD <товар> <количество> <адрес>"
+puts "REMOVE <товар> <количество> <адрес>"
+puts "INFO"
+puts "EXIT"
+
+loop do
+  print "\nВведите команду: "
+  command = gets.chomp
+  next if command.empty?
+  
+  system.process_command(command)
+end

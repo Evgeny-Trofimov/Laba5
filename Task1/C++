@@ -1,0 +1,200 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <iomanip>
+
+using namespace std;
+
+// Структура для хранения информации о ячейке
+struct Cell {
+    string address;
+    map<string, int> goods; // товар -> количество
+};
+
+vector<Cell> cells; // Все ячейки склада
+const int totalCells = 7 * 15 * 11 * 3; // 7 зон, 15 стеллажей, 11 секций, 3 полки
+
+// Инициализация склада
+void initWarehouse() {
+    for (char zone = 'A'; zone <= 'G'; zone++) {
+        for (int rack = 1; rack <= 15; rack++) {
+            for (int section = 1; section <= 11; section++) {
+                for (int shelf = 1; shelf <= 3; shelf++) {
+                    string address;
+                    address += zone;
+                    if (rack < 10) address += "0";
+                    address += to_string(rack);
+                    if (section < 10) address += "0";
+                    address += to_string(section);
+                    address += to_string(shelf);
+                    cells.push_back({address, {}});
+                }
+            }
+        }
+    }
+}
+
+// Поиск ячейки по адресу
+Cell* findCell(const string& address) {
+    for (auto& cell : cells) {
+        if (cell.address == address) return &cell;
+    }
+    return nullptr;
+}
+
+// Разделение строки на части
+void splitCommand(const string& command, string& cmd, string& good, int& quantity, string& address) {
+    size_t pos1 = command.find(' ');
+    if (pos1 == string::npos) return;
+    
+    size_t pos2 = command.find(' ', pos1 + 1);
+    if (pos2 == string::npos) return;
+    
+    size_t pos3 = command.find(' ', pos2 + 1);
+    if (pos3 == string::npos) return;
+    
+    cmd = command.substr(0, pos1);
+    good = command.substr(pos1 + 1, pos2 - pos1 - 1);
+    quantity = stoi(command.substr(pos2 + 1, pos3 - pos2 - 1));
+    address = command.substr(pos3 + 1);
+}
+
+// Добавление товара в ячейку
+void addGoods(const string& good, int quantity, const string& address) {
+    Cell* cell = findCell(address);
+    if (!cell) {
+        cout << "Ошибка: Ячейка не найдена" << endl;
+        return;
+    }
+
+    // Подсчет текущего количества товаров
+    int current = 0;
+    for (const auto& item : cell->goods) {
+        current += item.second;
+    }
+
+    if (current + quantity > 10) {
+        cout << "Ошибка: В ячейке может быть не более 10 товаров (сейчас " << current << ")" << endl;
+        return;
+    }
+
+    cell->goods[good] += quantity;
+    cout << "Добавлено " << quantity << " шт. товара '" << good << "' в ячейку " << address << endl;
+}
+
+// Удаление товара из ячейки
+void removeGoods(const string& good, int quantity, const string& address) {
+    Cell* cell = findCell(address);
+    if (!cell) {
+        cout << "Ошибка: Ячейка не найдена" << endl;
+        return;
+    }
+
+    if (cell->goods.find(good) == cell->goods.end()) {
+        cout << "Ошибка: Товар '" << good << "' не найден в ячейке" << endl;
+        return;
+    }
+
+    if (cell->goods[good] < quantity) {
+        cout << "Ошибка: Недостаточно товара (есть " << cell->goods[good] << ", запрошено " << quantity << ")" << endl;
+        return;
+    }
+
+    cell->goods[good] -= quantity;
+    if (cell->goods[good] == 0) {
+        cell->goods.erase(good);
+    }
+    cout << "Удалено " << quantity << " шт. товара '" << good << "' из ячейки " << address << endl;
+}
+
+// Получение информации о складе
+void getInfo() {
+    int usedCells = 0;
+    map<char, int> zoneUsed;
+    vector<string> emptyCells;
+
+    // Подсчет статистики
+    for (const auto& cell : cells) {
+        if (!cell.goods.empty()) {
+            usedCells++;
+            zoneUsed[cell.address[0]]++;
+        } else {
+            emptyCells.push_back(cell.address);
+        }
+    }
+
+    // Вывод информации
+    cout << "\nОбщая загруженность склада: "
+         << fixed << setprecision(2) << (usedCells * 100.0 / totalCells) << "% (" 
+         << usedCells << "/" << totalCells << " ячеек)" << endl;
+
+    cout << "\nЗагруженность по зонам:" << endl;
+    for (char zone = 'A'; zone <= 'G'; zone++) {
+        int zoneCells = 15 * 11 * 3;
+        cout << "Зона " << zone << ": " 
+             << fixed << setprecision(2) << (zoneUsed[zone] * 100.0 / zoneCells) << "% ("
+             << zoneUsed[zone] << "/" << zoneCells << ")" << endl;
+    }
+
+    cout << "\nЗанятые ячейки:" << endl;
+    for (const auto& cell : cells) {
+        if (!cell.goods.empty()) {
+            cout << cell.address << ": ";
+            for (const auto& item : cell.goods) {
+                cout << item.first << " (" << item.second << "), ";
+            }
+            cout << endl;
+        }
+    }
+
+    cout << "\nПустые ячейки (" << emptyCells.size() << "):" << endl;
+    for (size_t i = 0; i < emptyCells.size(); i++) {
+        cout << emptyCells[i];
+        if ((i + 1) % 10 == 0 || i == emptyCells.size() - 1) cout << endl;
+        else cout << ", ";
+    }
+}
+
+int main() {
+    initWarehouse();
+    cout << "Система учета товаров на складе (Вариант 6)" << endl;
+    cout << "Формат команд:\n"
+         << "ADD <товар> <количество> <адрес>\n"
+         << "REMOVE <товар> <количество> <адрес>\n"
+         << "INFO\n"
+         << "EXIT\n";
+
+    while (true) {
+        cout << "\nВведите команду: ";
+        string command;
+        getline(cin, command);
+
+        if (command.empty()) continue;
+
+        if (command == "INFO") {
+            getInfo();
+        }
+        else if (command == "EXIT") {
+            break;
+        }
+        else {
+            string cmd, good, address;
+            int quantity = 0;
+            
+            splitCommand(command, cmd, good, quantity, address);
+            
+            if (cmd == "ADD") {
+                addGoods(good, quantity, address);
+            }
+            else if (cmd == "REMOVE") {
+                removeGoods(good, quantity, address);
+            }
+            else {
+                cout << "Неверная команда. Доступные команды: ADD, REMOVE, INFO, EXIT" << endl;
+            }
+        }
+    }
+
+    return 0;
+}

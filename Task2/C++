@@ -1,1 +1,71 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <ctime>
 
+using namespace std;
+
+struct Visitor { string ticket; int duration; };
+
+string genTicket() {
+    string chars = "0123456789ABCDEF", ticket = "T";
+    for (int i = 0; i < 3; i++) ticket += chars[rand()%16];
+    return ticket;
+}
+
+void distribute(vector<vector<Visitor>>& windows, const vector<Visitor>& visitors) {
+    vector<int> times(windows.size(), 0);
+    for (const auto& v : visitors) {
+        int i = min_element(times.begin(), times.end()) - times.begin();
+        windows[i].push_back(v);
+        times[i] += v.duration;
+    }
+}
+
+void printWindows(const vector<vector<Visitor>>& windows) {
+    for (int i = 0; i < windows.size(); i++) {
+        int time = 0;
+        for (const auto& v : windows[i]) time += v.duration;
+        
+        cout << "Окно " << i+1 << " (" << time << " минут): ";
+        for (int j = 0; j < windows[i].size(); j++) {
+            cout << windows[i][j].ticket;
+            if (j != windows[i].size()-1) cout << ", ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    srand(time(0));
+    cout << ">>> Введите кол-во окон\n<<< ";
+    int n; cin >> n; cin.ignore();
+    vector<vector<Visitor>> windows(n);
+    vector<Visitor> visitors;
+    string cmd;
+
+    while (true) {
+        cout << "<<< ";
+        getline(cin, cmd);
+        if (cmd.empty()) continue;
+
+        if (cmd == "DISTRIBUTE") {
+            distribute(windows, visitors);
+            printWindows(windows);
+            for (auto& w : windows) w.clear();
+            visitors.clear();
+            break;
+        }
+        else if (cmd.find("ENQUEUE") == 0) {
+            try {
+                Visitor v{genTicket(), stoi(cmd.substr(8))};
+                visitors.push_back(v);
+                cout << ">>> " << v.ticket << endl;
+            } catch (...) {
+                cout << "Ошибка: Неверный формат команды ENQUEUE" << endl;
+            }
+        }
+        else cout << "Ошибка: Неизвестная команда" << endl;
+    }
+    return 0;
+}

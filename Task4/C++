@@ -5,28 +5,16 @@ using namespace std;
 map<string, string> regions; // Регион -> административный центр
 
 int main() {
-    // Примеры ввода для тестирования:
-    // 6
-    // CHANGE Москва Москва
-    // CHANGE Ленинградская_область Санкт-Петербург
-    // RENAME Ленинградская_область Санкт-Петербургская_область
-    // ABOUT Москва
-    // ABOUT Карелия
-    // ALL
-    
     int N;
-    cout << "Введите количество запросов: ";
     cin >> N;
     cin.ignore(); // Очистка буфера после ввода числа
     
     while (N--) {
         string cmd;
-        cout << "\nВведите команду (CHANGE/RENAME/ABOUT/ALL): ";
         cin >> cmd;
         
         if (cmd == "CHANGE") {
             string region, center;
-            cout << "Введите регион и административный центр: ";
             cin >> region >> center;
             
             if (regions.count(region)) {
@@ -39,7 +27,6 @@ int main() {
         }
         else if (cmd == "RENAME") {
             string old_name, new_name;
-            cout << "Введите старое и новое название региона: ";
             cin >> old_name >> new_name;
             
             if (!regions.count(old_name) || regions.count(new_name)) {
@@ -53,25 +40,20 @@ int main() {
         }
         else if (cmd == "ABOUT") {
             string region;
-            cout << "Введите название региона: ";
             cin >> region;
             
-            if (regions.count(region)) {  // <-- Исправлено: убрана лишняя скобка
+            if (regions.count(region)) {
                 cout << region << " has administrative center " << regions[region] << endl;
             } else {
                 cout << "Incorrect" << endl;
             }
         }
         else if (cmd == "ALL") {
-            cout << "Список всех регионов:\n";
             for (auto& entry : regions) {
                 cout << entry.first << " - " << entry.second << endl;
             }
         }
-        else {
-            cout << "Неизвестная команда!" << endl;
-        }
     }
     
     return 0;
-} 
+}

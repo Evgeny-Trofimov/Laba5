@@ -6,11 +6,13 @@ map<string, string> regions; // Регион -> административный
 
 int main() {
     int N;
+    cout << "Введите количество запросов: ";
     cin >> N;
     cin.ignore(); // Очистка буфера после ввода числа
     
     while (N--) {
         string cmd;
+        cout << "\nВведите команду (CHANGE/RENAME/ABOUT/ALL): ";
         cin >> cmd;
         
         if (cmd == "CHANGE") {

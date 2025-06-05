@@ -1,3 +1,5 @@
+# coding: utf-8
+
 # Класс для представления ячейки склада
 class Cell
   attr_accessor :address, :goods
@@ -66,14 +68,25 @@ class WarehouseSystem
   end
   
   def process_command(command)
-    case command
+    # Приводим команду к ASCII, заменяя проблемные символы
+    command = command.encode('ASCII', invalid: :replace, undef: :replace).strip
+    
+    case command.upcase
     when 'INFO'
       print_info
     when 'EXIT'
       exit
     else
-      cmd, good, quantity, address = command.split
-      quantity = quantity.to_i
+      parts = command.split
+      if parts.size < 4
+        puts "Неверный формат команды. Используйте: ADD/REMOVE товар количество адрес"
+        return
+      end
+      
+      cmd = parts[0].upcase
+      good = parts[1]
+      quantity = parts[2].to_i
+      address = parts[3].upcase
       
       cell = find_cell(address)
       unless cell
@@ -131,12 +144,12 @@ puts "Система учета товаров на складе"
 puts "Формат команд:"
 puts "ADD <товар> <количество> <адрес>"
 puts "REMOVE <товар> <количество> <адрес>"
-puts "INFO"
-puts "EXIT"
+puts "INFO - показать статистику"
+puts "EXIT - выйти из программы"
 
 loop do
   print "\nВведите команду: "
-  command = gets.chomp
+  command = gets.chomp.encode('UTF-8').strip rescue gets.chomp.strip
   next if command.empty?
   
   system.process_command(command)

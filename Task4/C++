@@ -1,9 +1,9 @@
-#include <iostream>  // Подключение библиотеки для ввода/вывода
-#include <map>       // Подключение библиотеки для работы с ассоциативными массивами (map)
+#include <iostream>  
+#include <map>       
 
-using namespace std;  // Использование стандартного пространства имен
+using namespace std; 
 
-map<string, string> regions;  // Ассоциативный массив: регион -> административный центр
+map<string, string> regions;  //  регион -> административный центр
 
 int main() {
     int N;  // Переменная для хранения количества запросов

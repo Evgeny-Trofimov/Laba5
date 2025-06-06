@@ -1,15 +1,15 @@
-#include <iostream>  // Подключение библиотеки для ввода/вывода
-#include <string>    // Подключение библиотеки для работы со строками
-#include <vector>    // Подключение библиотеки для работы с векторами
-#include <map>       // Подключение библиотеки для работы с ассоциативными массивами (map)
-#include <iomanip>   // Подключение библиотеки для форматированного вывода
+#include <iostream>  
+#include <string>    
+#include <vector>    
+#include <map>       
+#include <iomanip>   
 
-using namespace std;  // Использование стандартного пространства имен
+using namespace std;  
 
 // Структура для хранения информации о ячейке
 struct Cell {
-    string address;            // Адрес ячейки (например, "A01011")
-    map<string, int> goods;    // Ассоциативный массив: товар -> количество
+    string address;            // Адрес ячейки 
+    map<string, int> goods;    // товар -> количество
 };
 
 vector<Cell> cells;            // Вектор для хранения всех ячеек склада
@@ -25,7 +25,7 @@ void initWarehouse() {
             for (int section = 1; section <= 11; section++) {
                 // Цикл по полкам от 1 до 3
                 for (int shelf = 1; shelf <= 3; shelf++) {
-                    string address;  // Формирование адреса ячейки
+                    string address;  // Адрес ячейки
                     address += zone; // Добавление зоны
                     if (rack < 10) address += "0";  // Добавление ведущего нуля для стеллажа
                     address += to_string(rack);     // Добавление номера стеллажа
@@ -43,7 +43,7 @@ void initWarehouse() {
 Cell* findCell(const string& address) {
     // Перебор всех ячеек
     for (auto& cell : cells) {
-        if (cell.address == address) return &cell;  // Возврат указателя на ячейку, если адрес совпал
+        if (cell.address == address) return &cell;  // Возврат ячейки, если адрес совпал
     }
     return nullptr;  // Возврат nullptr, если ячейка не найдена
 }
@@ -60,7 +60,7 @@ void splitCommand(const string& command, string& cmd, string& good, int& quantit
     if (pos3 == string::npos) return;
     
     // Извлечение частей команды
-    cmd = command.substr(0, pos1);               // Команда (ADD/REMOVE)
+    cmd = command.substr(0, pos1);               // Команда ADD, либо REMOVE
     good = command.substr(pos1 + 1, pos2 - pos1 - 1);  // Название товара
     quantity = stoi(command.substr(pos2 + 1, pos3 - pos2 - 1));  // Количество товара
     address = command.substr(pos3 + 1);         // Адрес ячейки

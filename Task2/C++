@@ -1,71 +1,98 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <ctime>
+#include <iostream>   
+#include <vector>     
+#include <algorithm>  
+#include <ctime>      
 
-using namespace std;
+using namespace std;  
+// Структура для хранения информации о посетителе
+struct Visitor { 
+    string ticket;   // Номер билета посетителя
+    int duration;    // Время обслуживания в минутах
+};
 
-struct Visitor { string ticket; int duration; };
-
+// Генерация случайного номера билета
 string genTicket() {
-    string chars = "0123456789ABCDEF", ticket = "T";
+    string chars = "0123456789ABCDEF";  // Допустимые символы в билете
+    string ticket = "T";  // Начинается с буквы T
+    
     for (int i = 0; i < 3; i++) ticket += chars[rand()%16];
     return ticket;
 }
 
+// Распределение посетителей по окнам
 void distribute(vector<vector<Visitor>>& windows, const vector<Visitor>& visitors) {
-    vector<int> times(windows.size(), 0);
+    vector<int> times(windows.size(), 0);  // Время обслуживания для каждого окна
+    
+    // Распределение каждого посетителя
     for (const auto& v : visitors) {
+        // Находим окно с минимальным временем обслуживания
         int i = min_element(times.begin(), times.end()) - times.begin();
-        windows[i].push_back(v);
-        times[i] += v.duration;
+        windows[i].push_back(v);  // Добавляем посетителя в это окно
+        times[i] += v.duration;   // Увеличиваем время обслуживания окна
     }
 }
 
+// Вывод информации об окнах и посетителях
 void printWindows(const vector<vector<Visitor>>& windows) {
+    // Перебор всех окон
     for (int i = 0; i < windows.size(); i++) {
         int time = 0;
+        // Считаем общее время обслуживания для окна
         for (const auto& v : windows[i]) time += v.duration;
         
+        // Выводим информацию об окне
         cout << "Окно " << i+1 << " (" << time << " минут): ";
+        // Выводим билеты посетителей в этом окне
         for (int j = 0; j < windows[i].size(); j++) {
             cout << windows[i][j].ticket;
-            if (j != windows[i].size()-1) cout << ", ";
+            if (j != windows[i].size()-1) cout << ", ";  // Разделитель между билетами
         }
         cout << endl;
     }
 }
 
 int main() {
-    srand(time(0));
+    srand(time(0));  // Инициализация генератора случайных чисел
+    
+    // Запрос количества окон
     cout << ">>> Введите кол-во окон\n<<< ";
-    int n; cin >> n; cin.ignore();
-    vector<vector<Visitor>> windows(n);
-    vector<Visitor> visitors;
-    string cmd;
+    int n; cin >> n; cin.ignore();  // Чтение числа и очистка буфера
+    
+    vector<vector<Visitor>> windows(n);  // Создание вектора окон
+    vector<Visitor> visitors;           // Вектор для хранения посетителей
+    string cmd;                         // Переменная для хранения команды
 
+    // Основной цикл программы
     while (true) {
         cout << "<<< ";
-        getline(cin, cmd);
-        if (cmd.empty()) continue;
+        getline(cin, cmd);  // Чтение команды
+        if (cmd.empty()) continue;  // Пропуск пустых команд
 
+        // Обработка команды DISTRIBUTE
         if (cmd == "DISTRIBUTE") {
-            distribute(windows, visitors);
-            printWindows(windows);
+            distribute(windows, visitors);  // Распределение посетителей
+            printWindows(windows);          // Вывод информации
+            // Очистка окон и списка посетителей
             for (auto& w : windows) w.clear();
             visitors.clear();
-            break;
+            break;  // Завершение программы
         }
+        // Обработка команды ENQUEUE
         else if (cmd.find("ENQUEUE") == 0) {
             try {
+                // Создание нового посетителя
                 Visitor v{genTicket(), stoi(cmd.substr(8))};
-                visitors.push_back(v);
-                cout << ">>> " << v.ticket << endl;
+                visitors.push_back(v);  // Добавление в список
+                cout << ">>> " << v.ticket << endl;  // Вывод номера билета
             } catch (...) {
+                // Обработка ошибок при вводе
                 cout << "Ошибка: Неверный формат команды ENQUEUE" << endl;
             }
         }
-        else cout << "Ошибка: Неизвестная команда" << endl;
+        else {
+            // Обработка неизвестных команд
+            cout << "Ошибка: Неизвестная команда" << endl;
+        }
     }
-    return 0;
+    return 0;  // Завершение программы
 }

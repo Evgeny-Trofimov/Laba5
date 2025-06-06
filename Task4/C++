@@ -1,61 +1,78 @@
-#include <iostream>
-#include <map>
-using namespace std;
+#include <iostream>  // Подключение библиотеки для ввода/вывода
+#include <map>       // Подключение библиотеки для работы с ассоциативными массивами (map)
 
-map<string, string> regions; // Регион -> административный центр
+using namespace std;  // Использование стандартного пространства имен
+
+map<string, string> regions;  // Ассоциативный массив: регион -> административный центр
 
 int main() {
-    int N;
-    cout << "Введите количество запросов: ";
-    cin >> N;
-    cin.ignore(); // Очистка буфера после ввода числа
+    int N;  // Переменная для хранения количества запросов
+    cout << "Введите количество запросов: ";  // Вывод приглашения для ввода
+    cin >> N;  // Чтение количества запросов
+    cin.ignore();  // Очистка буфера после ввода числа
     
+    // Цикл обработки N запросов
     while (N--) {
-        string cmd;
-        cout << "\nВведите команду (CHANGE/RENAME/ABOUT/ALL): ";
-        cin >> cmd;
+        string cmd;  // Переменная для хранения команды
+        cout << "\nВведите команду (CHANGE/RENAME/ABOUT/ALL): ";  // Приглашение ввести команду
+        cin >> cmd;  // Чтение команды
         
+        // Обработка команды CHANGE (изменить/добавить регион)
         if (cmd == "CHANGE") {
-            string region, center;
-            cin >> region >> center;
+            string region, center;  // Переменные для названия региона и центра
+            cin >> region >> center;  // Чтение названия региона и центра
             
+            // Проверка существования региона
             if (regions.count(region)) {
+                // Если регион существует - вывод информации об изменении
                 cout << "Region " << region << " has changed its administrative center from " 
                      << regions[region] << " to " << center << endl;
             } else {
+                // Если регион новый - вывод информации о создании
                 cout << "New region " << region << " with administrative center " << center << endl;
             }
-            regions[region] = center;
+            regions[region] = center;  // Обновление/добавление данных
         }
+        // Обработка команды RENAME (переименовать регион)
         else if (cmd == "RENAME") {
-            string old_name, new_name;
-            cin >> old_name >> new_name;
+            string old_name, new_name;  // Переменные для старого и нового названия
+            cin >> old_name >> new_name;  // Чтение названий
             
+            // Проверка условий для переименования:
+            // 1. Старый регион должен существовать
+            // 2. Нового региона не должно существовать
             if (!regions.count(old_name) || regions.count(new_name)) {
-                cout << "Incorrect" << endl;
-                continue;
+                cout << "Incorrect" << endl;  // Вывод сообщения об ошибке
+                continue;  // Переход к следующей итерации
             }
             
+            // Перенос данных в новую запись
             regions[new_name] = regions[old_name];
-            regions.erase(old_name);
-            cout << old_name << " has been renamed to " << new_name << endl;
+            regions.erase(old_name);  // Удаление старой записи
+            cout << old_name << " has been renamed to " << new_name << endl;  // Вывод результата
         }
+        // Обработка команды ABOUT (информация о регионе)
         else if (cmd == "ABOUT") {
-            string region;
-            cin >> region;
+            string region;  // Переменная для названия региона
+            cin >> region;  // Чтение названия региона
             
+            // Проверка существования региона
             if (regions.count(region)) {
+                // Вывод информации о регионе
                 cout << region << " has administrative center " << regions[region] << endl;
             } else {
-                cout << "Incorrect" << endl;
+                cout << "Incorrect" << endl;  // Вывод сообщения об ошибке
             }
         }
+        // Обработка команды ALL (вывод всех регионов)
         else if (cmd == "ALL") {
+            // Перебор всех элементов ассоциативного массива
             for (auto& entry : regions) {
+                // Вывод информации в формате "регион - административный центр"
                 cout << entry.first << " - " << entry.second << endl;
             }
         }
     }
     
-    return 0;
+    return 0;  // Завершение программы
 }

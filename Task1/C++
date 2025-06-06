@@ -1,34 +1,38 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <iomanip>
+#include <iostream>  // Подключение библиотеки для ввода/вывода
+#include <string>    // Подключение библиотеки для работы со строками
+#include <vector>    // Подключение библиотеки для работы с векторами
+#include <map>       // Подключение библиотеки для работы с ассоциативными массивами (map)
+#include <iomanip>   // Подключение библиотеки для форматированного вывода
 
-using namespace std;
+using namespace std;  // Использование стандартного пространства имен
 
 // Структура для хранения информации о ячейке
 struct Cell {
-    string address;
-    map<string, int> goods; // товар -> количество
+    string address;            // Адрес ячейки (например, "A01011")
+    map<string, int> goods;    // Ассоциативный массив: товар -> количество
 };
 
-vector<Cell> cells; // Все ячейки склада
-const int totalCells = 7 * 15 * 11 * 3; // 7 зон, 15 стеллажей, 11 секций, 3 полки
+vector<Cell> cells;            // Вектор для хранения всех ячеек склада
+const int totalCells = 7 * 15 * 11 * 3; // Общее количество ячеек (7 зон, 15 стеллажей, 11 секций, 3 полки)
 
 // Инициализация склада
 void initWarehouse() {
+    // Цикл по зонам от 'A' до 'G'
     for (char zone = 'A'; zone <= 'G'; zone++) {
+        // Цикл по стеллажам от 1 до 15
         for (int rack = 1; rack <= 15; rack++) {
+            // Цикл по секциям от 1 до 11
             for (int section = 1; section <= 11; section++) {
+                // Цикл по полкам от 1 до 3
                 for (int shelf = 1; shelf <= 3; shelf++) {
-                    string address;
-                    address += zone;
-                    if (rack < 10) address += "0";
-                    address += to_string(rack);
-                    if (section < 10) address += "0";
-                    address += to_string(section);
-                    address += to_string(shelf);
-                    cells.push_back({address, {}});
+                    string address;  // Формирование адреса ячейки
+                    address += zone; // Добавление зоны
+                    if (rack < 10) address += "0";  // Добавление ведущего нуля для стеллажа
+                    address += to_string(rack);     // Добавление номера стеллажа
+                    if (section < 10) address += "0"; // Добавление ведущего нуля для секции
+                    address += to_string(section);  // Добавление номера секции
+                    address += to_string(shelf);   // Добавление номера полки
+                    cells.push_back({address, {}}); // Добавление новой ячейки в вектор
                 }
             }
         }
@@ -37,106 +41,113 @@ void initWarehouse() {
 
 // Поиск ячейки по адресу
 Cell* findCell(const string& address) {
+    // Перебор всех ячеек
     for (auto& cell : cells) {
-        if (cell.address == address) return &cell;
+        if (cell.address == address) return &cell;  // Возврат указателя на ячейку, если адрес совпал
     }
-    return nullptr;
+    return nullptr;  // Возврат nullptr, если ячейка не найдена
 }
 
 // Разделение строки на части
 void splitCommand(const string& command, string& cmd, string& good, int& quantity, string& address) {
-    size_t pos1 = command.find(' ');
-    if (pos1 == string::npos) return;
+    size_t pos1 = command.find(' ');  // Поиск первого пробела
+    if (pos1 == string::npos) return; // Если пробел не найден, выход
     
-    size_t pos2 = command.find(' ', pos1 + 1);
+    size_t pos2 = command.find(' ', pos1 + 1);  // Поиск второго пробела
     if (pos2 == string::npos) return;
     
-    size_t pos3 = command.find(' ', pos2 + 1);
+    size_t pos3 = command.find(' ', pos2 + 1);  // Поиск третьего пробела
     if (pos3 == string::npos) return;
     
-    cmd = command.substr(0, pos1);
-    good = command.substr(pos1 + 1, pos2 - pos1 - 1);
-    quantity = stoi(command.substr(pos2 + 1, pos3 - pos2 - 1));
-    address = command.substr(pos3 + 1);
+    // Извлечение частей команды
+    cmd = command.substr(0, pos1);               // Команда (ADD/REMOVE)
+    good = command.substr(pos1 + 1, pos2 - pos1 - 1);  // Название товара
+    quantity = stoi(command.substr(pos2 + 1, pos3 - pos2 - 1));  // Количество товара
+    address = command.substr(pos3 + 1);         // Адрес ячейки
 }
 
 // Добавление товара в ячейку
 void addGoods(const string& good, int quantity, const string& address) {
-    Cell* cell = findCell(address);
+    Cell* cell = findCell(address);  // Поиск ячейки по адресу
     if (!cell) {
         cout << "Ошибка: Ячейка не найдена" << endl;
         return;
     }
 
-    // Подсчет текущего количества товаров
+    // Подсчет текущего количества товаров в ячейке
     int current = 0;
     for (const auto& item : cell->goods) {
         current += item.second;
     }
 
+    // Проверка на переполнение ячейки (максимум 10 товаров)
     if (current + quantity > 10) {
         cout << "Ошибка: В ячейке может быть не более 10 товаров (сейчас " << current << ")" << endl;
         return;
     }
 
-    cell->goods[good] += quantity;
+    cell->goods[good] += quantity;  // Добавление товара
     cout << "Добавлено " << quantity << " шт. товара '" << good << "' в ячейку " << address << endl;
 }
 
 // Удаление товара из ячейки
 void removeGoods(const string& good, int quantity, const string& address) {
-    Cell* cell = findCell(address);
+    Cell* cell = findCell(address);  // Поиск ячейки по адресу
     if (!cell) {
         cout << "Ошибка: Ячейка не найдена" << endl;
         return;
     }
 
+    // Проверка наличия товара в ячейке
     if (cell->goods.find(good) == cell->goods.end()) {
         cout << "Ошибка: Товар '" << good << "' не найден в ячейке" << endl;
         return;
     }
 
+    // Проверка достаточного количества товара
     if (cell->goods[good] < quantity) {
         cout << "Ошибка: Недостаточно товара (есть " << cell->goods[good] << ", запрошено " << quantity << ")" << endl;
         return;
     }
 
-    cell->goods[good] -= quantity;
+    cell->goods[good] -= quantity;  // Уменьшение количества товара
     if (cell->goods[good] == 0) {
-        cell->goods.erase(good);
+        cell->goods.erase(good);    // Удаление товара, если количество стало 0
     }
     cout << "Удалено " << quantity << " шт. товара '" << good << "' из ячейки " << address << endl;
 }
 
 // Получение информации о складе
 void getInfo() {
-    int usedCells = 0;
-    map<char, int> zoneUsed;
-    vector<string> emptyCells;
+    int usedCells = 0;              // Счетчик занятых ячеек
+    map<char, int> zoneUsed;        // Карта для учета занятых ячеек по зонам
+    vector<string> emptyCells;      // Вектор для хранения адресов пустых ячеек
 
     // Подсчет статистики
     for (const auto& cell : cells) {
         if (!cell.goods.empty()) {
-            usedCells++;
-            zoneUsed[cell.address[0]]++;
+            usedCells++;             // Увеличение счетчика занятых ячеек
+            zoneUsed[cell.address[0]]++;  // Учет занятой ячейки по зоне
         } else {
-            emptyCells.push_back(cell.address);
+            emptyCells.push_back(cell.address);  // Добавление адреса пустой ячейки
         }
     }
 
-    // Вывод информации
+    // Вывод информации о загруженности склада
     cout << "\nОбщая загруженность склада: "
          << fixed << setprecision(2) << (usedCells * 100.0 / totalCells) << "% (" 
          << usedCells << "/" << totalCells << " ячеек)" << endl;
 
+    // Вывод загруженности по зонам
     cout << "\nЗагруженность по зонам:" << endl;
     for (char zone = 'A'; zone <= 'G'; zone++) {
-        int zoneCells = 15 * 11 * 3;
+        int zoneCells = 15 * 11 * 3;  // Количество ячеек в зоне
         cout << "Зона " << zone << ": " 
              << fixed << setprecision(2) << (zoneUsed[zone] * 100.0 / zoneCells) << "% ("
              << zoneUsed[zone] << "/" << zoneCells << ")" << endl;
     }
 
+    // Вывод информации о занятых ячейках
     cout << "\nЗанятые ячейки:" << endl;
     for (const auto& cell : cells) {
         if (!cell.goods.empty()) {
@@ -148,6 +159,7 @@ void getInfo() {
         }
     }
 
+    // Вывод списка пустых ячеек
     cout << "\nПустые ячейки (" << emptyCells.size() << "):" << endl;
     for (size_t i = 0; i < emptyCells.size(); i++) {
         cout << emptyCells[i];
@@ -157,7 +169,7 @@ void getInfo() {
 }
 
 int main() {
-    initWarehouse();
+    initWarehouse();  // Инициализация склада
     cout << "Система учета товаров на складе (Вариант 6)" << endl;
     cout << "Формат команд:\n"
          << "ADD <товар> <количество> <адрес>\n"
@@ -165,30 +177,31 @@ int main() {
          << "INFO\n"
          << "EXIT\n";
 
+    // Основной цикл программы
     while (true) {
         cout << "\nВведите команду: ";
         string command;
-        getline(cin, command);
+        getline(cin, command);  // Чтение команды от пользователя
 
-        if (command.empty()) continue;
+        if (command.empty()) continue;  // Пропуск пустых команд
 
         if (command == "INFO") {
-            getInfo();
+            getInfo();  // Вывод информации о складе
         }
         else if (command == "EXIT") {
-            break;
+            break;      // Выход из программы
         }
         else {
             string cmd, good, address;
             int quantity = 0;
             
-            splitCommand(command, cmd, good, quantity, address);
+            splitCommand(command, cmd, good, quantity, address);  // Разбор команды
             
             if (cmd == "ADD") {
-                addGoods(good, quantity, address);
+                addGoods(good, quantity, address);  // Добавление товара
             }
             else if (cmd == "REMOVE") {
-                removeGoods(good, quantity, address);
+                removeGoods(good, quantity, address);  // Удаление товара
             }
             else {
                 cout << "Неверная команда. Доступные команды: ADD, REMOVE, INFO, EXIT" << endl;
@@ -196,5 +209,5 @@ int main() {
         }
     }
 
-    return 0;
+    return 0;  // Завершение программы
 }

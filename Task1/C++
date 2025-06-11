@@ -9,7 +9,7 @@ using namespace std;
 // Структура для хранения информации о ячейке
 struct Cell {
     string address;            // Адрес ячейки 
-    map<string, int> goods;    // товар -> количество
+    map<string, int> goods;    // товар + количество
 };
 
 vector<Cell> cells;            // Вектор для хранения всех ячеек склада
